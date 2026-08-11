@@ -97,6 +97,11 @@ enum abstract FlxDirectionFlags(Int) from Int from FlxDirection to Int
 		return this & ~dir;
 	}
 
+	public inline function toInt():Int
+	{
+		return this;
+	}
+
 	public function toString()
 	{
 		if (this == NONE)

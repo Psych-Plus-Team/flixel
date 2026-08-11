@@ -4,6 +4,7 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.graphics.frames.FlxFrame;
 import flixel.util.FlxDestroyUtil.IFlxDestroyable;
+import flixel.util.FlxSignal.FlxTypedSignal;
 
 using StringTools;
 
@@ -64,6 +65,21 @@ class FlxAnimationController implements IFlxDestroyable
 	 * A function that has 1 parameter: a string name - animation name.
 	 */
 	public var finishCallback:(name:String) -> Void;
+
+	/**
+	 * Dispatches each time the current animation's frame changes.
+	 */
+	public final onFrameChange = new FlxTypedSignal<(animName:String, frameNumber:Int, frameIndex:Int)->Void>();
+
+	/**
+	 * Dispatches each time the current animation finishes.
+	 */
+	public final onFinish = new FlxTypedSignal<(animName:String)->Void>();
+
+	/**
+	 * Dispatches each time the current looped animation loops.
+	 */
+	public final onLoop = new FlxTypedSignal<(animName:String)->Void>();
 
 	/**
 	 * How fast or slow time should pass for this animation controller
@@ -148,6 +164,10 @@ class FlxAnimationController implements IFlxDestroyable
 		destroyAnimations();
 		_animations = null;
 		callback = null;
+		finishCallback = null;
+		flixel.util.FlxDestroyUtil.destroy(onFrameChange);
+		flixel.util.FlxDestroyUtil.destroy(onFinish);
+		flixel.util.FlxDestroyUtil.destroy(onLoop);
 		_sprite = null;
 	}
 
@@ -669,12 +689,13 @@ class FlxAnimationController implements IFlxDestroyable
 
 	inline function fireCallback():Void
 	{
+		var name:String = (_curAnim != null) ? (_curAnim.name) : null;
+		var number:Int = (_curAnim != null) ? (_curAnim.curFrame) : frameIndex;
 		if (callback != null)
 		{
-			var name:String = (_curAnim != null) ? (_curAnim.name) : null;
-			var number:Int = (_curAnim != null) ? (_curAnim.curFrame) : frameIndex;
 			callback(name, number, frameIndex);
 		}
+		onFrameChange.dispatch(name, number, frameIndex);
 	}
 
 	@:allow(flixel.animation)
@@ -684,6 +705,13 @@ class FlxAnimationController implements IFlxDestroyable
 		{
 			finishCallback(name);
 		}
+		onFinish.dispatch(name);
+	}
+
+	@:allow(flixel.animation)
+	inline function fireLoopCallback(?name:String):Void
+	{
+		onLoop.dispatch(name);
 	}
 
 	function byNamesHelper(addTo:Array<Int>, frameNames:Array<String>):Void

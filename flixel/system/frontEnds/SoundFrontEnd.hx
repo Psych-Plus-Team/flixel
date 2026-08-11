@@ -9,6 +9,7 @@ import flixel.system.FlxAssets;
 import flixel.sound.FlxSound;
 import flixel.sound.FlxSoundGroup;
 import flixel.system.ui.FlxSoundTray;
+import flixel.util.FlxSignal.FlxTypedSignal;
 import openfl.Assets;
 import openfl.media.Sound;
 #if (openfl >= "8.0.0")
@@ -36,6 +37,11 @@ class SoundFrontEnd
 	 * Function should take the form myVolumeHandler(volume:Float).
 	 */
 	public var volumeHandler:Float->Void;
+
+	/**
+	 * Signal-compatible volume hook for newer Flixel callers.
+	 */
+	public var onVolumeChange(default, null):FlxTypedSignal<Float->Void> = new FlxTypedSignal<Float->Void>();
 
 	#if FLX_KEYBOARD
 	/**
@@ -339,6 +345,7 @@ class SoundFrontEnd
 		{
 			volumeHandler(muted ? 0 : volume);
 		}
+		onVolumeChange.dispatch(muted ? 0 : volume);
 
 		showSoundTray(true);
 	}
@@ -362,9 +369,15 @@ class SoundFrontEnd
 		#if FLX_SOUND_TRAY
 		if (FlxG.game.soundTray != null && soundTrayEnabled)
 		{
-			FlxG.game.soundTray.show(up);
+			if (up) FlxG.game.soundTray.showIncrement();
+			else FlxG.game.soundTray.showDecrement();
 		}
 		#end
+	}
+
+	public inline function logToLinear(value:Float):Float
+	{
+		return value;
 	}
 
 	function new()
@@ -460,6 +473,7 @@ class SoundFrontEnd
 			var param:Float = muted ? 0 : Volume;
 			volumeHandler(param);
 		}
+		onVolumeChange.dispatch(muted ? 0 : Volume);
 		return volume = Volume;
 	}
 }

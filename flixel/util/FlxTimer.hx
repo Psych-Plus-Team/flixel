@@ -28,6 +28,19 @@ class FlxTimer implements IFlxDestroyable
 	public static var globalManager:FlxTimerManager;
 
 	/**
+	 * Convenience helper used by newer Flixel code. Creates a one-shot timer and
+	 * calls the callback without exposing the timer argument.
+	 */
+	public static function wait(time:Float, callback:Void->Void):FlxTimer
+	{
+		return new FlxTimer().start(time, function(_:FlxTimer)
+		{
+			if (callback != null)
+				callback();
+		});
+	}
+
+	/**
 	 * The manager to which this timer belongs
 	 * @since 4.2.0
 	 */

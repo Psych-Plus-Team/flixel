@@ -263,7 +263,7 @@ class FlxSprite extends FlxObject
 	 */
 	public var color(default, set):FlxColor = 0xffffff;
 
-	public var colorTransform(default, null):ColorTransform;
+	public var colorTransform(default, set):ColorTransform;
 
 	/**
 	 * Whether or not to use a `ColorTransform` set via `setColorTransform()`.
@@ -831,7 +831,13 @@ class FlxSprite extends FlxObject
 	@:noCompletion
 	function drawComplex(camera:FlxCamera):Void
 	{
-		_frame.prepareMatrix(_matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
+		drawFrameComplex(_frame, camera);
+	}
+
+	@:noCompletion
+	function drawFrameComplex(frame:FlxFrame, camera:FlxCamera):Void
+	{
+		frame.prepareMatrix(_matrix, FlxFrameAngle.ANGLE_0, checkFlipX(), checkFlipY());
 		_matrix.translate(-origin.x, -origin.y);
 		_matrix.scale(scale.x, scale.y);
 
@@ -853,7 +859,7 @@ class FlxSprite extends FlxObject
 			_matrix.ty = Math.floor(_matrix.ty);
 		}
 
-		camera.drawPixels(_frame, framePixels, _matrix, colorTransform, blend, antialiasing, shader);
+		camera.drawPixels(frame, framePixels, _matrix, colorTransform, blend, antialiasing, shader);
 	}
 
 	/**
@@ -993,6 +999,14 @@ class FlxSprite extends FlxObject
 
 		useColorTransform = alpha != 1 || color != 0xffffff || colorTransform.hasRGBOffsets();
 		dirty = true;
+	}
+
+	function set_colorTransform(value:ColorTransform):ColorTransform
+	{
+		colorTransform = value;
+		useColorTransform = value != null && (alpha != 1 || color != 0xffffff || value.hasRGBOffsets());
+		dirty = true;
+		return value;
 	}
 	
 	function updateColorTransform():Void

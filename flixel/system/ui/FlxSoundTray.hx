@@ -177,6 +177,16 @@ class FlxSoundTray extends Sprite
 		}
 	}
 
+	public function showIncrement():Void
+	{
+		show(true);
+	}
+
+	public function showDecrement():Void
+	{
+		show(false);
+	}
+
 	public function screenCenter():Void
 	{
 		scaleX = _defaultScale;

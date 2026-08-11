@@ -13,6 +13,9 @@ class FlxPointer
 	public var screenX(default, null):Int = 0;
 	public var screenY(default, null):Int = 0;
 
+	public var viewX(get, never):Int;
+	public var viewY(get, never):Int;
+
 	var _globalScreenX:Int = 0;
 	var _globalScreenY:Int = 0;
 
@@ -89,6 +92,21 @@ class FlxPointer
 		point.y = (_globalScreenY - Camera.y) / Camera.zoom + Camera.viewMarginY;
 
 		return point;
+	}
+
+	public inline function getViewPosition(?Camera:FlxCamera, ?point:FlxPoint):FlxPoint
+	{
+		return getPositionInCameraView(Camera, point);
+	}
+
+	inline function get_viewX():Int
+	{
+		return screenX;
+	}
+
+	inline function get_viewY():Int
+	{
+		return screenY;
 	}
 
 	/**

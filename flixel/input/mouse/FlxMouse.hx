@@ -121,6 +121,8 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	 */
 	public var justPressedTimeInTicks(get, never):Int;
 
+	public var ticksDeltaSincePress(get, never):Int;
+
 	#if FLX_MOUSE_ADVANCED
 	/**
 	 * Check to see if the right mouse button is currently pressed.
@@ -613,6 +615,9 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 
 	inline function get_justPressedTimeInTicks():Int
 		return _leftButton.justPressedTimeInTicks;
+
+	inline function get_ticksDeltaSincePress():Int
+		return FlxG.game.ticks - _leftButton.justPressedTimeInTicks;
 
 	#if FLX_MOUSE_ADVANCED
 	inline function get_pressedRight():Bool

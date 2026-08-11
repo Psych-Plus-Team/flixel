@@ -42,6 +42,11 @@ class InputFrontEnd
 		return Input;
 	}
 
+	public inline function addUniqueType<T:IFlxInputManager>(Input:T):T
+	{
+		return add(Input);
+	}
+
 	/**
 	 * Removes an input from the system
 	 *

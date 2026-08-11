@@ -16,6 +16,8 @@ class PluginFrontEnd
 	 */
 	public var list(default, null):Array<FlxBasic> = [];
 
+	public var drawOnTop:Bool = false;
+
 	/**
 	 * Adds a new plugin to the global plugin array.
 	 * **DEPRECATED:** In a later version this will be changed to behave like `addPlugin`.
