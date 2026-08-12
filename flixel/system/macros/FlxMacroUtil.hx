@@ -56,6 +56,9 @@ class FlxMacroUtil
 	
 	public static macro function deprecateOverride(fieldName:String, ?msg:String):Array<Field>
 	{
+		if (Context.defined("no-deprecation-warnings"))
+			return null;
+
 		var fields = Context.getBuildFields();
 		var pos:Position = null;
 		for (field in fields)
