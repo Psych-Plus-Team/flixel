@@ -3,11 +3,12 @@ package flixel.input;
 import flixel.FlxG;
 import flixel.math.FlxMath;
 import flixel.math.FlxPoint;
+import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxStringUtil;
 
 @:allow(flixel.input.mouse.FlxMouseButton)
 @:allow(flixel.input.touch.FlxTouch)
-class FlxSwipe
+class FlxSwipe implements IFlxDestroyable
 {
 	/**
 	 * Either LEFT_MOUSE, MIDDLE_MOUSE or RIGHT_MOUSE,
@@ -25,16 +26,22 @@ class FlxSwipe
 	public var radians(get, never):Float;
 	public var duration(get, never):Float;
 
-	var _startTimeInTicks:Int;
-	var _endTimeInTicks:Int;
+	var _startTimeInTicks:Float;
+	var _endTimeInTicks:Float;
 
-	function new(ID:Int, StartPosition:FlxPoint, EndPosition:FlxPoint, StartTimeInTicks:Int)
+	function new(ID:Int, StartPosition:FlxPoint, EndPosition:FlxPoint, StartTimeInTicks:Float)
 	{
 		this.ID = ID;
 		startPosition = StartPosition;
 		endPosition = EndPosition;
 		_startTimeInTicks = StartTimeInTicks;
 		_endTimeInTicks = FlxG.game.ticks;
+	}
+
+	public function destroy():Void
+	{
+		startPosition = FlxDestroyUtil.put(startPosition);
+		endPosition = FlxDestroyUtil.put(endPosition);
 	}
 
 	inline function toString():String

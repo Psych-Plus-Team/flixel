@@ -10,9 +10,11 @@ import openfl.events.MouseEvent;
 import openfl.Lib;
 import openfl.ui.Mouse;
 import flixel.FlxG;
+import flixel.input.FlxFlick;
 import flixel.input.IFlxInputManager;
 import flixel.input.FlxInput.FlxInputState;
 import flixel.input.mouse.FlxMouseButton.FlxMouseButtonID;
+import flixel.math.FlxPoint;
 import flixel.system.FlxAssets;
 import flixel.system.replay.MouseRecord;
 import flixel.util.FlxDestroyUtil;
@@ -69,6 +71,26 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	public var useSystemCursor(default, set):Bool = false;
 
 	/**
+	 * Check to see if the mouse has just been moved upwards.
+	 */
+	public var justMovedUp(get, never):Bool;
+
+	/**
+	 * Check to see if the mouse has just been moved downwards.
+	 */
+	public var justMovedDown(get, never):Bool;
+
+	/**
+	 * Check to see if the mouse has just been moved leftwards.
+	 */
+	public var justMovedLeft(get, never):Bool;
+
+	/**
+	 * Check to see if the mouse has just been moved rightwards.
+	 */
+	public var justMovedRight(get, never):Bool;
+
+	/**
 	 * Check to see if the mouse has just been moved.
 	 * @since 4.4.0
 	 */
@@ -122,6 +144,23 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	public var justPressedTimeInTicks(get, never):Int;
 
 	public var ticksDeltaSincePress(get, never):Int;
+
+	/**
+	 * The speed of this mouse in view space.
+	 */
+	public var velocity(default, null):FlxPoint = FlxPoint.get();
+
+	/**
+	 * The threshold to surpass for a movement check to be returned as true.
+	 */
+	public var swipeThreshold(default, null):FlxPoint = FlxPoint.get(100, 100);
+
+	#if FLX_POINTER_INPUT
+	/**
+	 * The FlxFlick class responsible for managing flicks.
+	 */
+	public var flickManager(default, null):FlxFlick = new FlxFlick();
+	#end
 
 	#if FLX_MOUSE_ADVANCED
 	/**
@@ -221,6 +260,10 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	var _prevY:Int = 0;
 	var _prevScreenX:Int = 0;
 	var _prevScreenY:Int = 0;
+	var _startX:Float = 0;
+	var _startY:Float = 0;
+	var _swipeDeltaX(get, never):Float;
+	var _swipeDeltaY(get, never):Float;
 
 	// Helper variable for cleaning up memory
 	var _stage:Stage;
@@ -437,6 +480,12 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 
 		_cursorBitmapData = FlxDestroyUtil.dispose(_cursorBitmapData);
 		FlxG.signals.postGameStart.remove(onGameStart);
+		velocity = FlxDestroyUtil.put(velocity);
+		swipeThreshold = FlxDestroyUtil.put(swipeThreshold);
+
+		#if FLX_POINTER_INPUT
+		flickManager.destroy();
+		#end
 	}
 
 	/**
@@ -449,6 +498,10 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 		#if FLX_MOUSE_ADVANCED
 		_middleButton.reset();
 		_rightButton.reset();
+		#end
+
+		#if FLX_POINTER_INPUT
+		flickManager.destroy();
 		#end
 	}
 
@@ -493,6 +546,7 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 	 */
 	function update():Void
 	{
+		calculateVelocity();
 		_prevX = x;
 		_prevY = y;
 		_prevScreenX = screenX;
@@ -522,6 +576,35 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 			wheel = 0;
 		}
 		_wheelUsed = false;
+
+		if (justPressed)
+		{
+			_startX = viewX;
+			_startY = viewY;
+		}
+
+		#if FLX_POINTER_INPUT
+		if (justReleased)
+		{
+			flickManager.initFlick(velocity);
+		}
+
+		if (pressed)
+		{
+			flickManager.destroy();
+		}
+
+		flickManager.update(FlxG.elapsed);
+		#end
+	}
+
+	function calculateVelocity():Void
+	{
+		if (!pressed)
+			return;
+
+		velocity.x = deltaScreenX;
+		velocity.y = deltaScreenY;
 	}
 
 	/**
@@ -588,6 +671,44 @@ class FlxMouse extends FlxPointer implements IFlxInputManager
 
 	inline function get_justMoved():Bool
 		return _prevX != x || _prevY != y;
+
+	inline function get_justMovedUp():Bool
+	{
+		var swiped:Bool = _swipeDeltaY < -swipeThreshold.y;
+		if (swiped)
+			_startY = viewY;
+		return swiped;
+	}
+
+	inline function get_justMovedDown():Bool
+	{
+		var swiped:Bool = _swipeDeltaY > swipeThreshold.y;
+		if (swiped)
+			_startY = viewY;
+		return swiped;
+	}
+
+	inline function get_justMovedLeft():Bool
+	{
+		var swiped:Bool = _swipeDeltaX < -swipeThreshold.x;
+		if (swiped)
+			_startX = viewX;
+		return swiped;
+	}
+
+	inline function get_justMovedRight():Bool
+	{
+		var swiped:Bool = _swipeDeltaX > swipeThreshold.x;
+		if (swiped)
+			_startX = viewX;
+		return swiped;
+	}
+
+	inline function get__swipeDeltaX():Float
+		return viewX - _startX;
+
+	inline function get__swipeDeltaY():Float
+		return viewY - _startY;
 
 	inline function get_deltaX():Int
 		return x - _prevX;
